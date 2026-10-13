@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduGenie: AI Learning Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-emerald-950 text-slate-100 min-h-screen p-6 font-sans">
+    <div class="max-w-5xl mx-auto">
+        <header class="mb-8 text-center">
+            <h1 class="text-4xl font-extrabold text-emerald-400 tracking-wide">EduGenie</h1>
+            <p class="text-emerald-200/70 mt-1">Google Gemini-Powered Personal Learning Assistant</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Form Input Card -->
+            <div class="bg-emerald-900/40 p-6 rounded-xl border border-emerald-800 shadow-xl backdrop-blur-sm">
+                <h2 class="text-xl font-semibold mb-4 text-emerald-300">Study Inputs</h2>
+                <form id="studyForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-emerald-200">Topic or Subject</label>
+                        <input type="text" id="topic" required placeholder="e.g., Photosynthesis & Cellular Respiration" class="mt-1 w-full p-2.5 bg-emerald-950/80 border border-emerald-800 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-400">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-emerald-200">Academic Level</label>
+                        <select id="academicLevel" class="mt-1 w-full p-2.5 bg-emerald-950/80 border border-emerald-800 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-400">
+                            <option value="High School">High School</option>
+                            <option value="Undergraduate">Undergraduate / College</option>
+                            <option value="Postgraduate">Postgraduate</option>
+                            <option value="General Learner">General Learner</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-emerald-200">Focus Mode</label>
+                        <select id="mode" class="mt-1 w-full p-2.5 bg-emerald-950/80 border border-emerald-800 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-400">
+                            <option value="overview">Quick Overview & Flashcards</option>
+                            <option value="deep_dive">Deep Dive Study Guide</option>
+                            <option value="quiz">Exam & Practice Quiz Focus</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-emerald-200">Lesson Text / Notes (Optional)</label>
+                        <textarea id="content" rows="4" placeholder="Paste textbook excerpts, lecture notes, or topic details here..." class="mt-1 w-full p-2.5 bg-emerald-950/80 border border-emerald-800 rounded-lg text-slate-100 focus:outline-none focus:border-emerald-400"></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold p-3 rounded-lg transition duration-200 shadow-lg">Generate Study Guide</button>
+                </form>
+            </div>
+
+            <!-- Output Display Card -->
+            <div class="bg-emerald-900/40 p-6 rounded-xl border border-emerald-800 shadow-xl flex flex-col backdrop-blur-sm">
+                <h2 class="text-xl font-semibold mb-4 text-emerald-300">Generated Materials</h2>
+                <div id="output" class="flex-1 bg-emerald-950/80 border border-emerald-800 p-4 rounded-lg overflow-y-auto whitespace-pre-wrap text-sm text-slate-200 min-h-[380px]">Your custom study guide, flashcards, and quizzes will appear here...</div>
+                <button id="copyBtn" class="mt-4 bg-emerald-800 hover:bg-emerald-700 text-emerald-100 font-medium p-2.5 rounded-lg transition duration-200 text-sm">Copy Materials</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('studyForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const outputDiv = document.getElementById('output');
+            outputDiv.textContent = "EduGenie is analyzing topic and drafting study materials with Gemini...";
+
+            const payload = {
+                topic: document.getElementById('topic').value,
+                academic_level: document.getElementById('academicLevel').value,
+                mode: document.getElementById('mode').value,
+                content: document.getElementById('content').value
+            };
+
+            try {
+                const res = await fetch('http://localhost:8000/api/generate-study-material', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    outputDiv.textContent = data.materials;
+                } else {
+                    outputDiv.textContent = "Error generating study materials.";
+                }
+            } catch (err) {
+                outputDiv.textContent = "Connection error: Make sure the FastAPI backend is running.";
+            }
+        });
+
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            const text = document.getElementById('output').textContent;
+            navigator.clipboard.writeText(text);
+            alert('Study materials copied to clipboard!');
+        });
+    </script>
+</body>
+</html>
